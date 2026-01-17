@@ -1,8 +1,8 @@
-package com.company.controllers;
+package controllers;
 
-import com.company.models.User;
-import com.company.controllers.interfaces.IUserController;
-import com.company.repositories.interfaces.IUserRepository;
+import models.User;
+import controllers.interfaces.IUserController;
+import repositories.interfaces.IUserRepository;
 
 import java.util.List;
 

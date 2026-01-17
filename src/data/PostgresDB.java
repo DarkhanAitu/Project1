@@ -1,6 +1,6 @@
-package com.company.data;
+package data;
 
-import com.company.data.interfaces.IDB;
+import data.interfaces.IDB;
 
 import java.sql.*;
 

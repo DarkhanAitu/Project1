@@ -1,11 +1,10 @@
-package com.company;
 
-import com.company.controllers.UserController;
-import com.company.controllers.interfaces.IUserController;
-import com.company.data.PostgresDB;
-import com.company.data.interfaces.IDB;
-import com.company.repositories.UserRepository;
-import com.company.repositories.interfaces.IUserRepository;
+import controllers.UserController;
+import controllers.interfaces.IUserController;
+import data.PostgresDB;
+import data.interfaces.IDB;
+import repositories.UserRepository;
+import repositories.interfaces.IUserRepository;
 
 public class Main {
 
