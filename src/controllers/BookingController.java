@@ -19,15 +19,25 @@ public class BookingController implements IBookingController {
 
     @Override
     public void bookTicket() {
-
-
-
         System.out.print("Movie ID: ");
         int movieId = scanner.nextInt();
+
+        // Проверка 1: Существует ли фильм?
+        if (!movieRepo.existsById(movieId)) {
+            System.out.println("❌ Movie not found!");
+            return;
+        }
 
         System.out.print("Seat ID: ");
         int seatId = scanner.nextInt();
 
+        // Проверка 2: Существует ли такое место?
+        if (!bookingRepo.doesSeatExist(seatId)) {
+            System.out.println("❌ Seat not found!");
+            return;
+        }
+
+        // Проверка 3: Не занято ли оно?
         if (bookingRepo.isSeatTaken(seatId, movieId)) {
             System.out.println("❌ Seat already booked!");
             return;

@@ -13,7 +13,7 @@ public class PostgresDB implements IDatabase {
             connection = DriverManager.getConnection(
                     "jdbc:postgresql://localhost:5432/cinemadb",
                     "postgres",
-                    "5677"
+                    "0000"
             );
         } catch (SQLException e) {
             e.printStackTrace();
