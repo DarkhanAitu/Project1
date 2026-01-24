@@ -8,6 +8,20 @@ import java.sql.*;
 public class BookingRepository implements IBookingRepository {
 
     @Override
+    public boolean doesSeatExist(int seatId) {
+        String sql = "SELECT COUNT(*) FROM seats WHERE id = ?";
+        try (PreparedStatement ps = PostgresDB.getInstance().getConnection().prepareStatement(sql)) {
+            ps.setInt(1, seatId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1) > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+
+    @Override
     public boolean isSeatTaken(int seatId, int movieId) {
         String sql = """
             SELECT COUNT(*) FROM tickets
