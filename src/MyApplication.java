@@ -1,27 +1,69 @@
 import controllers.BookingController;
+
 import java.util.Scanner;
 
 public class MyApplication {
 
-    private final BookingController controller = new BookingController();
-    private final Scanner scanner = new Scanner(System.in);
+    public static void main(String[] args) {
+        BookingController controller = new BookingController();
+        Scanner scanner = new Scanner(System.in);
 
-    public void start() {
+        // Логин
+        controller.login();
+
         while (true) {
-            System.out.println("""
-                1. Show movies
-                2. Book ticket
-                3. Exit
-                """);
+            System.out.println("\n1. Show movies");
+            System.out.println("2. Book ticket");
+            System.out.println("3. Show full booking info");
 
-            int choice = scanner.nextInt();
-
-            if (choice == 1) {
-                controller.showMovies();
-            } else if (choice == 2) {
-                controller.bookTicket();
+            if (controller.getCurrentUserRole().equals("admin")) {
+                System.out.println("4. Add new movie");
+                System.out.println("5. Exit");
             } else {
-                break;
+                System.out.println("4. Exit");
+            }
+
+            int choice = Integer.parseInt(scanner.nextLine());
+
+            if (controller.getCurrentUserRole().equals("admin")) {
+                switch (choice) {
+                    case 1:
+                        controller.showMovies();
+                        break;
+                    case 2:
+                        controller.bookTicket();
+                        break;
+                    case 3:
+                        controller.showFullBooking();
+                        break;
+                    case 4:
+                        controller.addMovie();
+                        break;
+                    case 5:
+                        System.out.println("Exiting...");
+                        System.exit(0);
+                        break;
+                    default:
+                        System.out.println("Invalid choice");
+                }
+            } else { // обычный пользователь
+                switch (choice) {
+                    case 1:
+                        controller.showMovies();
+                        break;
+                    case 2:
+                        controller.bookTicket();
+                        break;
+                    case 3:
+                        controller.showFullBooking();
+                        break;
+                    case 4:
+                        System.out.println("Exiting...");
+                        System.exit(0);
+                        break;
+                    default:
+                        System.out.println("Invalid choice");
+                }
             }
         }
     }
