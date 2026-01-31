@@ -3,12 +3,10 @@ import controllers.BookingController;
 import java.util.Scanner;
 
 public class MyApplication {
-
     public static void main(String[] args) {
         BookingController controller = new BookingController();
         Scanner scanner = new Scanner(System.in);
 
-        // Логин
         controller.login();
 
         while (true) {
@@ -27,42 +25,26 @@ public class MyApplication {
 
             if (controller.getCurrentUserRole().equals("admin")) {
                 switch (choice) {
-                    case 1:
-                        controller.showMovies();
-                        break;
-                    case 2:
-                        controller.bookTicket();
-                        break;
-                    case 3:
-                        controller.showFullBooking();
-                        break;
-                    case 4:
-                        controller.addMovie();
-                        break;
-                    case 5:
+                    case 1 -> controller.showMovies();
+                    case 2 -> controller.bookTicket();
+                    case 3 -> controller.showFullBooking();
+                    case 4 -> controller.addMovie();
+                    case 5 -> {
                         System.out.println("Exiting...");
                         System.exit(0);
-                        break;
-                    default:
-                        System.out.println("Invalid choice");
+                    }
+                    default -> System.out.println("Invalid choice");
                 }
-            } else { // обычный пользователь
+            } else {
                 switch (choice) {
-                    case 1:
-                        controller.showMovies();
-                        break;
-                    case 2:
-                        controller.bookTicket();
-                        break;
-                    case 3:
-                        controller.showFullBooking();
-                        break;
-                    case 4:
+                    case 1 -> controller.showMovies();
+                    case 2 -> controller.bookTicket();
+                    case 3 -> controller.showFullBooking();
+                    case 4 -> {
                         System.out.println("Exiting...");
                         System.exit(0);
-                        break;
-                    default:
-                        System.out.println("Invalid choice");
+                    }
+                    default -> System.out.println("Invalid choice");
                 }
             }
         }

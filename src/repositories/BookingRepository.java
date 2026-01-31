@@ -6,7 +6,6 @@ import java.sql.*;
 
 public class BookingRepository {
 
-    // Проверка, существует ли место
     public boolean doesSeatExist(int seatId) {
         String sql = "SELECT COUNT(*) FROM seats WHERE id = ?";
         try (PreparedStatement ps = PostgresDB.getInstance().getConnection().prepareStatement(sql)) {
@@ -19,7 +18,6 @@ public class BookingRepository {
         return false;
     }
 
-    // Проверка, занято ли место для конкретного фильма
     public boolean isSeatTaken(int seatId, int movieId) {
         String sql = "SELECT COUNT(*) FROM tickets WHERE seat_id = ? AND movie_id = ?";
         try (PreparedStatement ps = PostgresDB.getInstance().getConnection().prepareStatement(sql)) {
@@ -34,7 +32,6 @@ public class BookingRepository {
         return false;
     }
 
-    // Создание бронирования и билета
     public void createBooking(int userId, int movieId, int seatId, double price) {
         try {
             Connection conn = PostgresDB.getInstance().getConnection();
@@ -51,7 +48,6 @@ public class BookingRepository {
             keys.next();
             int bookingId = keys.getInt(1);
 
-            // Создаём билет
             PreparedStatement ticket = conn.prepareStatement(
                     "INSERT INTO tickets(booking_id, seat_id, movie_id, price) VALUES (?,?,?,?)"
             );
@@ -66,7 +62,6 @@ public class BookingRepository {
         }
     }
 
-    // Получить цену места по типу
     public double getSeatPrice(int seatId) {
         String sql = "SELECT seat_type FROM seats WHERE id = ?";
         try (PreparedStatement ps = PostgresDB.getInstance().getConnection().prepareStatement(sql)) {
@@ -87,7 +82,6 @@ public class BookingRepository {
         return 0;
     }
 
-    // Показать все места с их типами
     public void showSeats() {
         String sql = "SELECT id, seat_number, seat_type FROM seats ORDER BY id";
         try (Statement st = PostgresDB.getInstance().getConnection().createStatement()) {
@@ -104,7 +98,6 @@ public class BookingRepository {
         }
     }
 
-    // Показать полную информацию о бронировании
     public void getFullBooking(int bookingId) {
         String sql = "SELECT b.id AS booking_id, b.booking_date, " +
                 "u.username, u.role, " +
