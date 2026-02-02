@@ -11,12 +11,16 @@ public class BookingRepository {
 
     public void showSeatsWithStatus(int movieId) {
         String sql = """
-            SELECT s.id, s.seat_number, s.seat_type,
-                   CASE WHEN t.id IS NULL THEN 'FREE' ELSE 'BOOKED' END AS status
-            FROM seats s
-            LEFT JOIN tickets t ON s.id = t.seat_id AND t.movie_id = ?
-            ORDER BY s.id
-        """;
+        SELECT s.id, s.seat_number, s.seat_type,
+               CASE
+                   WHEN t.id IS NULL THEN 'FREE'
+                   ELSE 'BOOKED'
+               END AS status
+        FROM seats s
+        LEFT JOIN tickets t
+            ON s.id = t.seat_id AND t.movie_id = ?
+        ORDER BY s.id
+    """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, movieId);
@@ -24,11 +28,14 @@ public class BookingRepository {
 
             System.out.println("Seats:");
             while (rs.next()) {
-                int id = rs.getInt("id");
-                String number = rs.getString("seat_number");
-                String type = rs.getString("seat_type");
+                int seatId = rs.getInt("id");
+                String seatNumber = rs.getString("seat_number");
+                String seatType = rs.getString("seat_type");
                 String status = rs.getString("status");
-                System.out.println(id + ": " + number + " (" + type + ") - " + status);
+
+                double price = getSeatPrice(seatId);
+
+                System.out.println(seatId + ": " + seatNumber + " (" + seatType + ") - " + status + " - $" + price);
             }
         } catch (SQLException e) {
             e.printStackTrace();
