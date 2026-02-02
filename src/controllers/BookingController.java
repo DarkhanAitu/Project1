@@ -37,7 +37,10 @@ public class BookingController {
 
     public void showMovies() {
         List<Movie> movies = movieRepo.getAll();
-        for (Movie m : movies) System.out.println(m);
+        for (Movie m : movies) {
+            // Выводим ID, название, длительность и цену
+            System.out.println(m.getId() + " | " + m.getTitle() + " (" + m.getDuration() + " min) - $" + m.getPrice());
+        }
     }
 
     public void addMovie() {
@@ -45,14 +48,20 @@ public class BookingController {
             System.out.println("You are not allowed to add movies.");
             return;
         }
+
         System.out.print("Movie title: ");
         String title = scanner.nextLine();
+
         System.out.print("Duration (min): ");
         int duration = Integer.parseInt(scanner.nextLine());
+
         System.out.print("Price: ");
         double price = Double.parseDouble(scanner.nextLine());
 
-        movieRepo.addMovie(title, duration, price);
+        Movie movie = new Movie(0, title, duration, price); // ID = 0, Postgres сам присвоит SERIAL
+
+        movieRepo.addMovie(movie);
+
         System.out.println("Movie added successfully!");
     }
 
@@ -60,7 +69,7 @@ public class BookingController {
         System.out.print("Movie ID: ");
         int movieId = Integer.parseInt(scanner.nextLine());
 
-        bookingRepo.showSeats(); // показываем все места
+        bookingRepo.showSeatsWithStatus(movieId);
 
         System.out.print("Enter Seat ID: ");
         int seatId = Integer.parseInt(scanner.nextLine());
@@ -69,20 +78,23 @@ public class BookingController {
             System.out.println("Seat does not exist!");
             return;
         }
+
         if (bookingRepo.isSeatTaken(seatId, movieId)) {
             System.out.println("Seat already booked!");
             return;
         }
 
         double price = bookingRepo.getSeatPrice(seatId);
-
         bookingRepo.createBooking(currentUser.getId(), movieId, seatId, price);
+
         System.out.println("Ticket booked successfully! Price: " + price);
     }
 
     public void showFullBooking() {
-        System.out.print("Enter Booking ID: ");
-        int bookingId = Integer.parseInt(scanner.nextLine());
-        bookingRepo.getFullBooking(bookingId);
+        System.out.print("Enter Movie ID to view all bookings: ");
+        int movieId = Integer.parseInt(scanner.nextLine());
+
+        bookingRepo.getFullBooking(currentUser.getId(), movieId);
     }
 }
+

@@ -10,7 +10,7 @@ public class MyApplication {
         controller.login();
 
         while (true) {
-            System.out.println("\n1. Show movies");
+            System.out.println("1. Show movies");
             System.out.println("2. Book ticket");
             System.out.println("3. Show full booking info");
 
@@ -30,7 +30,6 @@ public class MyApplication {
                     case 3 -> controller.showFullBooking();
                     case 4 -> controller.addMovie();
                     case 5 -> {
-                        System.out.println("Exiting...");
                         System.exit(0);
                     }
                     default -> System.out.println("Invalid choice");
@@ -41,7 +40,6 @@ public class MyApplication {
                     case 2 -> controller.bookTicket();
                     case 3 -> controller.showFullBooking();
                     case 4 -> {
-                        System.out.println("Exiting...");
                         System.exit(0);
                     }
                     default -> System.out.println("Invalid choice");
