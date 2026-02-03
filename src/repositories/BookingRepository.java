@@ -1,60 +1,88 @@
 package repositories;
 
 import data.PostgresDB;
-import repositories.interfaces.IBookingRepository;
 
 import java.sql.*;
 
-public class BookingRepository implements IBookingRepository {
+public class BookingRepository {
 
-    @Override
-    public boolean doesSeatExist(int seatId) {
-        String sql = "SELECT COUNT(*) FROM seats WHERE id = ?";
-        try (PreparedStatement ps = PostgresDB.getInstance().getConnection().prepareStatement(sql)) {
-            ps.setInt(1, seatId);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) return rs.getInt(1) > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
+    private final Connection connection = PostgresDB.getInstance().getConnection();
 
 
-    @Override
-    public boolean isSeatTaken(int seatId, int movieId) {
+    public void showSeatsWithStatus(int movieId) {
         String sql = """
-            SELECT COUNT(*) FROM tickets
-            WHERE seat_id = ? AND movie_id = ?
+            SELECT s.id, s.seat_number, s.seat_type,
+                   CASE WHEN t.id IS NULL THEN 'FREE' ELSE 'BOOKED' END AS status
+            FROM seats s
+            LEFT JOIN tickets t ON s.id = t.seat_id AND t.movie_id = ?
+            ORDER BY s.id
         """;
 
-        try (PreparedStatement ps =
-                     PostgresDB.getInstance().getConnection().prepareStatement(sql)) {
-
-            ps.setInt(1, seatId);
-            ps.setInt(2, movieId);
-
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, movieId);
             ResultSet rs = ps.executeQuery();
-            rs.next();
-            return rs.getInt(1) > 0;
 
+            System.out.println("Seats:");
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String number = rs.getString("seat_number");
+                String type = rs.getString("seat_type");
+                String status = rs.getString("status");
+                System.out.println(id + ": " + number + " (" + type + ") - " + status);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return false;
+    }
+    public boolean doesSeatExist(int seatId) {
+        String sql = "SELECT 1 FROM seats WHERE id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, seatId);
+            return ps.executeQuery().next();
+        } catch (SQLException e) {
+            return false;
+        }
     }
 
-    @Override
+    public boolean isSeatTaken(int seatId, int movieId) {
+        String sql = "SELECT 1 FROM tickets WHERE seat_id = ? AND movie_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, seatId);
+            ps.setInt(2, movieId);
+            return ps.executeQuery().next();
+        } catch (SQLException e) {
+            return true;
+        }
+    }
+
+    public double getSeatPrice(int seatId) {
+        String sql = "SELECT seat_type FROM seats WHERE id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, seatId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                String type = rs.getString("seat_type");
+                if (type == null) return 0;
+                return switch (type.toUpperCase()) {
+                    case "STANDARD" -> 150;
+                    case "COMFORT" -> 300;
+                    case "VIP" -> 500;
+                    default -> 0;
+                };
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     public void createBooking(int userId, int movieId, int seatId, double price) {
         try {
-            Connection conn = PostgresDB.getInstance().getConnection();
 
-            PreparedStatement booking =
-                    conn.prepareStatement(
-                            "INSERT INTO bookings(user_id) VALUES (?)",
-                            Statement.RETURN_GENERATED_KEYS
-                    );
-
+            PreparedStatement booking = connection.prepareStatement(
+                    "INSERT INTO bookings(user_id) VALUES (?)",
+                    Statement.RETURN_GENERATED_KEYS
+            );
             booking.setInt(1, userId);
             booking.executeUpdate();
 
@@ -62,17 +90,69 @@ public class BookingRepository implements IBookingRepository {
             keys.next();
             int bookingId = keys.getInt(1);
 
-            PreparedStatement ticket =
-                    conn.prepareStatement(
-                            "INSERT INTO tickets(booking_id, seat_id, movie_id, price) VALUES (?,?,?,?)"
-                    );
-
+            PreparedStatement ticket = connection.prepareStatement(
+                    "INSERT INTO tickets(booking_id, seat_id, movie_id, price) VALUES (?,?,?,?)"
+            );
             ticket.setInt(1, bookingId);
             ticket.setInt(2, seatId);
             ticket.setInt(3, movieId);
             ticket.setDouble(4, price);
             ticket.executeUpdate();
 
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void getFullBooking(int userId, int movieId) {
+        String sql = """
+        SELECT b.id AS booking_id,
+               u.username,
+               u.role,
+               m.title,
+               m.duration,
+               s.seat_number,
+               s.seat_type,
+               h.name AS hall_name,
+               t.price AS ticket_price
+        FROM bookings b
+        JOIN users u ON b.user_id = u.id
+        JOIN tickets t ON t.booking_id = b.id
+        JOIN movies m ON t.movie_id = m.id
+        JOIN seats s ON t.seat_id = s.id
+        JOIN halls h ON s.hall_id = h.id
+        WHERE u.id = ? AND m.id = ?
+        ORDER BY s.id
+    """;
+
+        try (PreparedStatement ps = PostgresDB.getInstance().getConnection().prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ps.setInt(2, movieId);
+
+            ResultSet rs = ps.executeQuery();
+            boolean hasResult = false;
+            System.out.printf("%-10s | %-10s | %-8s | %-20s | %-5s | %-6s | %-8s | %-12s | %-5s%n",
+                    "Booking ID", "User", "Role", "Movie", "Min", "Seat", "Type", "Hall", "Price");
+            System.out.println("-");
+
+            while (rs.next()) {
+                hasResult = true;
+                System.out.printf("%-10d | %-10s | %-8s | %-20s | %-5d | %-6s | %-8s | %-12s | %-5.2f%n",
+                        rs.getInt("booking_id"),
+                        rs.getString("username"),
+                        rs.getString("role"),
+                        rs.getString("title"),
+                        rs.getInt("duration"),
+                        rs.getString("seat_number"),
+                        rs.getString("seat_type"),
+                        rs.getString("hall_name"),
+                        rs.getDouble("ticket_price")
+                );
+            }
+
+            if (!hasResult) {
+                System.out.println("No bookings found for this user and movie!");
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

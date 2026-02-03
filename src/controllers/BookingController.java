@@ -1,48 +1,164 @@
 package controllers;
 
-import controllers.interfaces.IBookingController;
-import repositories.*;
+import models.Movie;
+import models.User;
+import repositories.BookingRepository;
+import repositories.MovieRepository;
+import factories.UserFactory;
+import models.Category;
+import repositories.CategoryRepository;
+
+
+import java.util.List;
 import java.util.Scanner;
 
-public class BookingController implements IBookingController {
+public class BookingController {
 
-    private final MovieRepository movieRepo = new MovieRepository();
     private final BookingRepository bookingRepo = new BookingRepository();
-
-
+    private final MovieRepository movieRepo = new MovieRepository();
     private final Scanner scanner = new Scanner(System.in);
+    private User currentUser;
 
-    @Override
-    public void showMovies() {
-        movieRepo.getAll().forEach(System.out::println);
+    public void login() {
+        System.out.print("Are you an admin or a customer? (1 = admin, 2 = customer): ");
+        String roleInput = scanner.nextLine().trim();
+
+        String username = roleInput.equals("1") ? "admin_user" : "";
+        if (roleInput.equals("2")) {
+            System.out.print("Enter your name: ");
+            username = scanner.nextLine();
+        }
+
+        currentUser = UserFactory.createUser(roleInput, username);
+
+
+        System.out.println("Logged in as: " + currentUser.getUsername() + " (" + currentUser.getRole() + ")");
     }
 
-    @Override
+    public String getCurrentUserRole() {
+        if (currentUser == null) return "";
+        return currentUser.getRole();
+    }
+
+    public void showMovies() {
+        List<Movie> movies = movieRepo.getAll();
+        if (movies.isEmpty()) {
+            System.out.println("No movies available.");
+            return;
+        }
+
+        for (Movie m : movies) {
+            System.out.println(m);
+        }
+    }
+
+    public void addMovie() {
+        if (!currentUser.getRole().equals("admin")) {
+            System.out.println("You are not allowed to add movies.");
+            return;
+        }
+
+        Scanner scanner = new Scanner(System.in);
+        CategoryRepository categoryRepo = new CategoryRepository();
+
+        System.out.print("Movie title: ");
+        String title = scanner.nextLine();
+        if (title == null || title.isBlank()) {
+            System.out.println("Title cannot be empty");
+            return;
+        }
+
+        List<Category> categories = categoryRepo.getAll();
+        if (categories.isEmpty()) {
+            System.out.println("No categories available! Add categories first.");
+            return;
+        }
+
+        System.out.println("Available categories:");
+        categories.forEach(c -> System.out.println(c.getId() + " | " + c.getName()));
+
+
+        Category category = null;
+        while (category == null) {
+            System.out.print("Choose category ID: ");
+            int catId;
+            try {
+                catId = Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("Category ID must be a number!");
+                continue;
+            }
+
+            category = categoryRepo.getById(catId);
+            if (category == null) {
+                System.out.println("Invalid category! Please choose a valid ID.");
+            }
+        }
+
+
+        int duration = 0;
+        while (duration <= 0) {
+            System.out.print("Duration (min): ");
+            try {
+                duration = Integer.parseInt(scanner.nextLine());
+                if (duration <= 0) {
+                    System.out.println("Duration must be positive!");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Duration must be a number!");
+            }
+        }
+
+        double price = -1;
+        while (price < 0) {
+            System.out.print("Price: ");
+            try {
+                price = Double.parseDouble(scanner.nextLine());
+                if (price < 0) {
+                    System.out.println("Price cannot be negative!");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Price must be a number!");
+            }
+        }
+
+
+        Movie movie = new Movie(0, title, duration, price, category);
+        movieRepo.addMovie(movie);
+
+        System.out.println("Movie added successfully! Category: " + category.getName());
+    }
+
+
     public void bookTicket() {
         System.out.print("Movie ID: ");
-        int movieId = scanner.nextInt();
+        int movieId = Integer.parseInt(scanner.nextLine());
 
-        if (!movieRepo.existsById(movieId)) {
-            System.out.println("❌ Movie not found!");
-            return;
-        }
+        bookingRepo.showSeatsWithStatus(movieId);
 
-        System.out.print("Seat ID: ");
-        int seatId = scanner.nextInt();
-
+        System.out.print("Enter Seat ID: ");
+        int seatId = Integer.parseInt(scanner.nextLine());
 
         if (!bookingRepo.doesSeatExist(seatId)) {
-            System.out.println("❌ Seat not found!");
+            System.out.println("Seat does not exist!");
             return;
         }
-
 
         if (bookingRepo.isSeatTaken(seatId, movieId)) {
-            System.out.println("❌ Seat already booked!");
+            System.out.println("Seat already booked!");
             return;
         }
 
-        bookingRepo.createBooking(1, movieId, seatId, 1000);
-        System.out.println("✅ Ticket booked successfully!");
+        double price = bookingRepo.getSeatPrice(seatId);
+        bookingRepo.createBooking(currentUser.getId(), movieId, seatId, price);
+
+        System.out.println("Ticket booked successfully! Price: " + price);
+    }
+
+    public void showFullBooking() {
+        System.out.print("Enter Movie ID to view all bookings: ");
+        int movieId = Integer.parseInt(scanner.nextLine());
+
+        bookingRepo.getFullBooking(currentUser.getId(), movieId);
     }
 }

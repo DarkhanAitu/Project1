@@ -13,14 +13,20 @@ public class PostgresDB implements IDatabase {
         String user = System.getenv("DB_USER");
         String password = System.getenv("DB_PASSWORD");
 
+
+        if (url == null || user == null || password == null) {
+            url = "jdbc:postgresql://localhost:5432/cinemadb";
+            user = "postgres";
+            password = "0000";
+        }
+
+
         try {
-            connection = DriverManager.getConnection(
-                    url,
-                    user,
-                    password
-            );
+            connection = DriverManager.getConnection(url, user, password);
+            System.out.println("Connected to database successfully!");
         } catch (SQLException e) {
             e.printStackTrace();
+            System.out.println("Failed to connect to database!");
         }
     }
 
