@@ -1,7 +1,9 @@
 package controllers;
 
 import models.Movie;
+import models.MovieCategory;
 import models.User;
+import factories.MovieFactory;
 import repositories.BookingRepository;
 import repositories.MovieRepository;
 
@@ -15,6 +17,7 @@ public class BookingController {
     private final Scanner scanner = new Scanner(System.in);
     private User currentUser;
 
+    // Метод для логина пользователя
     public void login() {
         System.out.print("Are you an admin or a customer? (admin/customer): ");
         String role = scanner.nextLine().trim().toLowerCase();
@@ -30,43 +33,69 @@ public class BookingController {
         System.out.println("Logged in as: " + currentUser.getUsername() + " (" + currentUser.getRole() + ")");
     }
 
+    // Получить роль текущего пользователя
     public String getCurrentUserRole() {
         if (currentUser == null) return "";
         return currentUser.getRole();
     }
 
+    // Показать все фильмы
     public void showMovies() {
         List<Movie> movies = movieRepo.getAll();
-        for (Movie m : movies) {
-            // Выводим ID, название, длительность и цену
-            System.out.println(m.getId() + " | " + m.getTitle() + " (" + m.getDuration() + " min) - $" + m.getPrice());
-        }
-    }
 
-    public void addMovie() {
-        if (!currentUser.getRole().equals("admin")) {
-            System.out.println("You are not allowed to add movies.");
+        if (movies.isEmpty()) {
+            System.out.println("No movies available.");
             return;
         }
 
-        System.out.print("Movie title: ");
+        System.out.println("Available movies:");
+        for (Movie m : movies) {
+            System.out.println(
+                    m.getId() + " | " +
+                            m.getTitle() + " (" + m.getDuration() + " min) - $" +
+                            m.getPrice() +
+                            " | Category: " + m.getCategory()
+            );
+        }
+    }
+
+    // Добавление фильма (только для админа)
+    public void addMovie() {
+        if (currentUser == null || !currentUser.getRole().equals("admin")) {
+            System.out.println("Access denied. Only admins can add movies.");
+            return;
+        }
+
+        System.out.print("Title: ");
         String title = scanner.nextLine();
 
-        System.out.print("Duration (min): ");
+        System.out.print("Duration (minutes): ");
         int duration = Integer.parseInt(scanner.nextLine());
 
         System.out.print("Price: ");
         double price = Double.parseDouble(scanner.nextLine());
 
-        Movie movie = new Movie(0, title, duration, price); // ID = 0, Postgres сам присвоит SERIAL
+        System.out.print("Category (ACTION, COMEDY, DRAMA, HORROR, ROMANCE): ");
+        String categoryInput = scanner.nextLine().toUpperCase();
 
+        MovieCategory category;
+        try {
+            category = MovieCategory.valueOf(categoryInput);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid category! Defaulting to ACTION.");
+            category = MovieCategory.ACTION;
+        }
+
+        // Создаем фильм через фабрику
+        Movie movie = MovieFactory.createMovie(0, title, duration, price, category);
         movieRepo.addMovie(movie);
 
-        System.out.println("Movie added successfully!");
+        System.out.println("Movie added successfully! Category: " + movie.getCategory());
     }
 
+    // Бронирование билета
     public void bookTicket() {
-        System.out.print("Movie ID: ");
+        System.out.print("Enter Movie ID to book: ");
         int movieId = Integer.parseInt(scanner.nextLine());
 
         bookingRepo.showSeatsWithStatus(movieId);
@@ -87,9 +116,10 @@ public class BookingController {
         double price = bookingRepo.getSeatPrice(seatId);
         bookingRepo.createBooking(currentUser.getId(), movieId, seatId, price);
 
-        System.out.println("Ticket booked successfully! Price: " + price);
+        System.out.println("Ticket booked successfully! Price: $" + price);
     }
 
+    // Показать все брони для фильма
     public void showFullBooking() {
         System.out.print("Enter Movie ID to view all bookings: ");
         int movieId = Integer.parseInt(scanner.nextLine());
@@ -97,4 +127,5 @@ public class BookingController {
         bookingRepo.getFullBooking(currentUser.getId(), movieId);
     }
 }
+
 
