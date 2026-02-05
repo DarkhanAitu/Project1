@@ -6,7 +6,6 @@ import models.User;
 import Factories.MovieFactory;
 import repositories.BookingRepository;
 import repositories.MovieRepository;
-import repositories.UserRepository;
 
 import java.util.List;
 import java.util.Scanner;
@@ -17,32 +16,20 @@ public class BookingController {
     private final MovieRepository movieRepo = new MovieRepository();
     private final Scanner scanner = new Scanner(System.in);
     private User currentUser;
-    private final UserRepository userRepo = new UserRepository();
 
     public void login() {
         System.out.print("Are you an admin or a customer? (admin/customer): ");
-        String roleInput = scanner.nextLine().trim().toLowerCase();
+        String role = scanner.nextLine().trim().toLowerCase();
 
-        System.out.print("Enter your name: ");
-        String name = scanner.nextLine().trim();
-
-        User user = userRepo.findByUsername(name);
-
-        if (user == null) {
-            System.out.println("User not found. Access denied.");
-            System.exit(0);
+        if (role.equals("admin")) {
+            currentUser = new User(1, "admin_user", "admin");
+        } else {
+            System.out.print("Enter your name: ");
+            String name = scanner.nextLine();
+            currentUser = new User(2, name, "customer");
         }
 
-        if (!user.getRole().equalsIgnoreCase(roleInput)) {
-            System.out.println("Access denied. Role mismatch.");
-            System.exit(0);
-        }
-
-        currentUser = user;
-        System.out.println(
-                "Logged in as: " + currentUser.getUsername() +
-                        " (" + currentUser.getRole() + ")"
-        );
+        System.out.println("Logged in as: " + currentUser.getUsername() + " (" + currentUser.getRole() + ")");
     }
 
     public String getCurrentUserRole() {
