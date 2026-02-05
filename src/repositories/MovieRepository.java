@@ -48,7 +48,7 @@ public class MovieRepository {
 
     public List<Movie> getAll() {
         List<Movie> movies = new ArrayList<>();
-        String sql = "SELECT id, title, duration, price, category FROM movies";
+        String sql = "SELECT id, title, duration, price, category FROM movies ORDER BY id ASC";
 
         try (Statement st = connection.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
