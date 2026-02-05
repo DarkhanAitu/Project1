@@ -30,6 +30,7 @@ public class MovieRepository {
     }
 
 
+
     public double getPrice(int movieId) {
         String sql = "SELECT price FROM movies WHERE id = ?";
 
@@ -48,7 +49,11 @@ public class MovieRepository {
 
     public List<Movie> getAll() {
         List<Movie> movies = new ArrayList<>();
-        String sql = "SELECT id, title, duration, price, category FROM movies";
+        String sql = """
+    SELECT id, title, duration, price, category
+    FROM movies
+    ORDER BY id
+""";
 
         try (Statement st = connection.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
@@ -59,7 +64,7 @@ public class MovieRepository {
                         rs.getString("title"),
                         rs.getInt("duration"),
                         rs.getDouble("price"),
-                        MovieCategory.valueOf(rs.getString("category")) // вот тут подтягиваем категорию
+                        MovieCategory.valueOf(rs.getString("category"))
                 );
                 movies.add(movie);
             }
