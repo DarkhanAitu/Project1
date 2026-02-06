@@ -16,7 +16,8 @@ public class MyApplication {
 
             if (controller.getCurrentUserRole().equals("admin")) {
                 System.out.println("4. Add new movie");
-                System.out.println("5. Exit");
+                System.out.println("5. Add new admin");
+                System.out.println("6. Exit");
             } else {
                 System.out.println("4. Exit");
             }
@@ -29,7 +30,8 @@ public class MyApplication {
                     case 2 -> controller.bookTicket();
                     case 3 -> controller.showFullBooking();
                     case 4 -> controller.addMovie();
-                    case 5 -> {
+                    case 5 -> controller.addAdmin();
+                    case 6 -> {
                         System.exit(0);
                     }
                     default -> System.out.println("Invalid choice");

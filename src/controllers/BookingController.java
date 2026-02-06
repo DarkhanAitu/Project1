@@ -52,6 +52,32 @@ public class BookingController {
         return currentUser.getRole();
     }
 
+    public void addAdmin() {
+        if (currentUser == null || !currentUser.getRole().equalsIgnoreCase("admin")) {
+            System.out.println("Access denied. Only admins can add new admins.");
+            return;
+        }
+
+        System.out.print("Enter new admin's name: ");
+        String name = scanner.nextLine().trim();
+
+        if (userRepo.findByUsername(name) != null) {
+            System.out.println("User with this name already exists!");
+            return;
+        }
+
+        User newAdmin = new User();
+        newAdmin.setUsername(name);
+        newAdmin.setRole("admin");
+
+        if (userRepo.addUser(newAdmin)) {
+            System.out.println("New admin added successfully: " + name);
+        } else {
+            System.out.println("Failed to add new admin. Try again.");
+        }
+    }
+
+
     public void showMovies() {
         List<Movie> movies = movieRepo.getAll();
 
