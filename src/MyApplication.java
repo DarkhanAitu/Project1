@@ -7,6 +7,10 @@ public class MyApplication {
         BookingController controller = new BookingController();
         Scanner scanner = new Scanner(System.in);
 
+        if (!controller.login()) {
+            System.exit(0);
+        }
+
         controller.login();
 
         while (true) {
