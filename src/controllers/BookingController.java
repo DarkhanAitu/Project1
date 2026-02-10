@@ -20,7 +20,7 @@ public class BookingController {
     private final UserRepository userRepo = new UserRepository();
 
 
-    public void login() {
+    public boolean login() {
         System.out.print("Are you an admin or a customer? (admin/customer): ");
         String role = scanner.nextLine().trim().toLowerCase();
 
@@ -37,12 +37,12 @@ public class BookingController {
                     || !user.getRole().equalsIgnoreCase("admin")
                     || !user.getPassword().equals(password)) {
                 System.out.println("Invalid username or password. Access denied.");
-                return;
+                return false;
             }
-
 
             currentUser = user;
             System.out.println("Logged in as: " + currentUser.getUsername() + " (ADMIN)");
+            return true;
 
         } else {
             System.out.print("Enter your name: ");
@@ -61,8 +61,10 @@ public class BookingController {
 
             currentUser = user;
             System.out.println("Logged in as: " + currentUser.getUsername() + " (CUSTOMER)");
+            return true;
         }
     }
+
 
 
     public String getCurrentUserRole() {
