@@ -104,6 +104,64 @@ public class BookingRepository {
             e.printStackTrace();
         }
     }
+    public void getFullBookingByMovie(int movieId) {
+        String sql = """
+        SELECT b.id AS booking_id,
+               u.username,
+               u.role,
+               m.title,
+               m.duration,
+               s.seat_number,
+               s.seat_type,
+               h.name AS hall_name,
+               t.price AS ticket_price
+        FROM bookings b
+        JOIN users u ON b.user_id = u.id
+        JOIN tickets t ON t.booking_id = b.id
+        JOIN movies m ON t.movie_id = m.id
+        JOIN seats s ON t.seat_id = s.id
+        JOIN halls h ON s.hall_id = h.id
+        WHERE m.id = ?
+        ORDER BY b.id, s.id
+    """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, movieId);
+            ResultSet rs = ps.executeQuery();
+
+            boolean hasResult = false;
+
+            System.out.printf(
+                    "%-10s | %-10s | %-8s | %-20s | %-5s | %-6s | %-8s | %-12s | %-5s%n",
+                    "Booking ID", "User", "Role", "Movie", "Min", "Seat", "Type", "Hall", "Price"
+            );
+            System.out.println("-");
+
+            while (rs.next()) {
+                hasResult = true;
+                System.out.printf(
+                        "%-10d | %-10s | %-8s | %-20s | %-5d | %-6s | %-8s | %-12s | %-5.2f%n",
+                        rs.getInt("booking_id"),
+                        rs.getString("username"),
+                        rs.getString("role"),
+                        rs.getString("title"),
+                        rs.getInt("duration"),
+                        rs.getString("seat_number"),
+                        rs.getString("seat_type"),
+                        rs.getString("hall_name"),
+                        rs.getDouble("ticket_price")
+                );
+            }
+
+            if (!hasResult) {
+                System.out.println("No bookings found for this movie!");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public void getFullBooking(int userId, int movieId) {
         String sql = """
