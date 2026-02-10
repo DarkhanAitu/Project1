@@ -1,23 +1,34 @@
+import controllers.AdminController;
 import controllers.BookingController;
+import controllers.LoginController;
+import models.User;
 
 import java.util.Scanner;
 
 public class MyApplication {
-    public static void main(String[] args) {
-        BookingController controller = new BookingController();
-        Scanner scanner = new Scanner(System.in);
 
-        if (!controller.login()) {
-            System.exit(0);
+    public static void main(String[] args) {
+
+        Scanner scanner = new Scanner(System.in);
+        LoginController loginController = new LoginController();
+
+        while (!loginController.login()) {
+            System.out.println("\nPlease try again.\n");
         }
 
-        controller.login();
+        User currentUser = loginController.getCurrentUser();
+
+        BookingController bookingController =
+                new BookingController(currentUser);
+
+        AdminController adminController =
+                new AdminController(currentUser);
 
         while (true) {
             System.out.println("1. Show movies");
             System.out.println("2. Show full booking info");
 
-            if (controller.getCurrentUserRole().equals("admin")) {
+            if (loginController.getCurrentUserRole().equalsIgnoreCase("admin")) {
                 System.out.println("3. Add new movie");
                 System.out.println("4. Add new admin");
                 System.out.println("5. Exit");
@@ -26,27 +37,29 @@ public class MyApplication {
                 System.out.println("4. Exit");
             }
 
-            int choice = Integer.parseInt(scanner.nextLine());
+            int choice;
+            try {
+                choice = Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input!");
+                continue;
+            }
 
-            if (controller.getCurrentUserRole().equals("admin")) {
+            if (loginController.getCurrentUserRole().equalsIgnoreCase("admin")) {
                 switch (choice) {
-                    case 1 -> controller.showMovies();
-                    case 2 -> controller.showFullBooking();
-                    case 3 -> controller.addMovie();
-                    case 4 -> controller.addAdmin();
-                    case 5 -> {
-                        System.exit(0);
-                    }
+                    case 1 -> bookingController.showMovies();
+                    case 2 -> bookingController.showFullBooking();
+                    case 3 -> adminController.addMovie();
+                    case 4 -> adminController.addAdmin();
+                    case 5 -> System.exit(0);
                     default -> System.out.println("Invalid choice");
                 }
             } else {
                 switch (choice) {
-                    case 1 -> controller.showMovies();
-                    case 2 -> controller.showFullBooking();
-                    case 3 -> controller.bookTicket();
-                    case 4 -> {
-                        System.exit(0);
-                    }
+                    case 1 -> bookingController.showMovies();
+                    case 2 -> bookingController.showFullBooking();
+                    case 3 -> bookingController.bookTicket();
+                    case 4 -> System.exit(0);
                     default -> System.out.println("Invalid choice");
                 }
             }
