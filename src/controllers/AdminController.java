@@ -5,6 +5,7 @@ import models.Movie;
 import models.MovieCategory;
 import models.User;
 import Factories.MovieFactory;
+import repositories.BookingRepository;
 import repositories.MovieRepository;
 import repositories.UserRepository;
 
@@ -16,6 +17,7 @@ public class AdminController implements IAdminController {
     private final MovieRepository movieRepo = new MovieRepository();
     private final UserRepository userRepo = new UserRepository();
     private final User currentUser;
+    private final BookingRepository bookingRepo = new BookingRepository();
 
     public AdminController(User currentUser) {
         this.currentUser = currentUser;
@@ -76,6 +78,12 @@ public class AdminController implements IAdminController {
 
         userRepo.addUser(admin);
         System.out.println("New admin added.");
+    }
+    public void showFullBookingForMovie() {
+        System.out.print("Enter Movie ID to view all bookings: ");
+        int movieId = Integer.parseInt(scanner.nextLine());
+
+        bookingRepo.getFullBookingByMovie(movieId);
     }
 
 }

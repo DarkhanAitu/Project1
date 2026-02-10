@@ -104,7 +104,7 @@ public class BookingController {
     }
 
 
-    public void showFullBooking() {
+    public void showMyBookings() {
         System.out.print("Enter Movie ID to view booking details: ");
         int movieId = Integer.parseInt(scanner.nextLine());
 
