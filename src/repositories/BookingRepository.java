@@ -1,10 +1,11 @@
 package repositories;
 
+import repositories.interfaces.IBookingRepository;
 import data.PostgresDB;
 
 import java.sql.*;
 
-public class BookingRepository {
+public class BookingRepository implements IBookingRepository{
 
     private final Connection connection = PostgresDB.getInstance().getConnection();
 

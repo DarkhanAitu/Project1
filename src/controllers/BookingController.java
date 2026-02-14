@@ -5,11 +5,12 @@ import models.MovieCategory;
 import models.User;
 import repositories.BookingRepository;
 import repositories.MovieRepository;
+import controllers.interfaces.IBookingController;
 
 import java.util.List;
 import java.util.Scanner;
 
-public class BookingController {
+public class BookingController implements IBookingController{
 
     private final BookingRepository bookingRepo = new BookingRepository();
     private final MovieRepository movieRepo = new MovieRepository();
